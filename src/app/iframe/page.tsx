@@ -1,23 +1,46 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const IframePage = () => {
+    const [value, setValue] = useState({
+        email: '',
+        password: '',
+    })
+
+    const validate = (values: { email: string; password: string }) => {
+        const emailIsValid = !!values.email.length && values.email.includes('@')
+        const passwordIsValid = values.password.length > 3
+        if (emailIsValid && passwordIsValid) {
+            window.parent.postMessage('filled', '*')
+        }
+    }
+
+    const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const name = event.target.name
+        const value = event.target.value
+        setValue((prev) => {
+            const newValues = { ...prev, [name]: value }
+            validate(newValues)
+            return newValues
+        })
+    }
+
     const sendMessageToParent = (event: unknown) => {
-        console.log('sendMessageToParent')
         event?.preventDefault()
         window.parent.postMessage('click', '*')
     }
 
     const catchMessageFromParent = () => {
         window.addEventListener('message', function (event) {
-            console.log('catchMessageFromParent')
             if (event.origin !== window.location.origin) {
-                console.error('Сообщение пришло с неизвестного источника')
+                toast('Сообщение пришло с неизвестного источника')
                 return
             }
 
             if (event.data === 'click') {
-                console.log('Кнопка в родительском окне была нажата')
+                toast('Кнопка в родительском окне была нажата')
             }
         })
     }
@@ -25,7 +48,7 @@ const IframePage = () => {
     useEffect(catchMessageFromParent, [])
 
     return (
-        <form className="max-w-sm mx-auto">
+        <form className="max-w-sm mx-auto" id="form">
             <div className="mb-5">
                 <label
                     htmlFor="email"
@@ -38,6 +61,9 @@ const IframePage = () => {
                     id="email"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="name@flowbite.com"
+                    onChange={onChange}
+                    value={value.email}
+                    name="email"
                 />
             </div>
             <div className="mb-5">
@@ -51,6 +77,9 @@ const IframePage = () => {
                     type="password"
                     id="password"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    onChange={onChange}
+                    value={value.password}
+                    name="password"
                 />
             </div>
             <div className="flex items-start mb-5">
@@ -85,6 +114,7 @@ const IframePage = () => {
             >
                 Child Default Button
             </button>
+            <ToastContainer />
         </form>
     )
 }

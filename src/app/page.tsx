@@ -1,5 +1,7 @@
 'use client'
 import React, { useEffect } from 'react'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 export default function Home() {
     const catchMessageFromIframeWithPostMessage = () => {
@@ -7,10 +9,12 @@ export default function Home() {
         iframe?.contentWindow.postMessage('init', '*')
         window.addEventListener('message', function (event) {
             if (event.origin !== window.location.origin) {
-                console.error('Неизвестный источник')
+                toast('Неизвестный источник')
                 return
             }
-            console.log('Отловил нажатие кнопки в iframe через postMessage')
+            if (event.data === 'click') {
+                toast('Отловил нажатие кнопки в iframe через postMessage')
+            }
         })
     }
 
@@ -20,7 +24,7 @@ export default function Home() {
                 document?.querySelector('#iframe')?.contentWindow?.document
             const button = iframe?.querySelector('#button_default')
             button?.addEventListener('click', function () {
-                console.log('Отловил нажатие кнопки в iframe через default')
+                toast('Отловил нажатие кнопки в iframe через default')
             })
         }, 1000)
     }
@@ -30,8 +34,23 @@ export default function Home() {
         iframe?.contentWindow?.postMessage('click', '*')
     }
 
+    const catchFilledFormMessage = () => {
+        const iframe = document.querySelector('#iframe')
+        iframe?.contentWindow.postMessage('init', '*')
+        window.addEventListener('message', function (event) {
+            if (event.origin !== window.location.origin) {
+                toast('Неизвестный источник')
+                return
+            }
+            if (event.data === 'filled') {
+                toast('Форма заполнена')
+            }
+        })
+    }
+
     useEffect(catchMessageFromIframeWithDefault, [])
     useEffect(catchMessageFromIframeWithPostMessage, [])
+    useEffect(catchFilledFormMessage, [])
 
     return (
         <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -50,6 +69,7 @@ export default function Home() {
                     src="./iframe"
                 ></iframe>
             </main>
+            <ToastContainer />
         </div>
     )
 }
